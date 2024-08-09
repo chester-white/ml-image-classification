@@ -21,7 +21,7 @@ test_loader = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=False
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
 
-epochs = 50
+epochs = 70
 losses = []
 losses_table = PrettyTable()
 losses_table.field_names = ['Epoch', 'Loss']
@@ -36,7 +36,8 @@ for i in range(epochs):
         losses_sum += loss.detach().numpy()
         if j == len(train_loader) - 1:
             losses.append(losses_sum / len(train_loader))
-            losses_table.add_row([i + 1, losses_sum / len(train_loader)])
+            if i == 0 or i == 1 or i == 2 or i == 3 or i == 4 or (i + 1) % 5 == 0:
+                losses_table.add_row([i + 1, losses_sum / len(train_loader)])
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
