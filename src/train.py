@@ -2,42 +2,49 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
+from prettytable import PrettyTable
+import matplotlib.pyplot as plt
 from model import Model
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-epochs = 4
-batch_size = 1
+model = Model().to(device)
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-train_dataset = torchvision.datasets.CIFAR10(root='./dataset', train=True, transform=transform, download=True)
-test_dataset = torchvision.datasets.CIFAR10(root='./dataset', train=False, transform=transform, download=True)
+train_data = torchvision.datasets.CIFAR10(root='./dataset', train=True, transform=transform, download=True)
+test_data = torchvision.datasets.CIFAR10(root='./dataset', train=False, transform=transform, download=True)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-model = Model().to(device)
+train_loader = torch.utils.data.DataLoader(train_data, batch_size=4, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=False)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
 
-for epoch in range(epochs):
-    for i, (images, labels) in enumerate(train_loader):
+epochs = 50
+losses = []
+losses_table = PrettyTable()
+losses_table.field_names = ['Epoch', 'Loss']
+
+for i in range(epochs):
+    losses_sum = 0
+    for j, (images, labels) in enumerate(train_loader):
         images = images.to(device)
         labels = labels.to(device)
         predictions = model(images)
         loss = criterion(predictions, labels)
+        losses_sum += loss.detach().numpy()
+        if j == len(train_loader) - 1:
+            losses.append(losses_sum / len(train_loader))
+            losses_table.add_row([i + 1, losses_sum / len(train_loader)])
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if (i + 1) % 5000 == 0:
-            print(loss.item())
+print(losses_table)
 
+correct = 0
 with torch.no_grad():
-    correct = 0
     for images, labels in test_loader:
         images = images.to(device)
         labels = labels.to(device)
@@ -45,5 +52,10 @@ with torch.no_grad():
         _, predicted = torch.max(predictions, 1)
         correct += (predicted == labels).sum().item()
 
-    accuracy = 100.0 * correct / len(test_dataset)
-    print(f'Accuracy: {accuracy} %')
+print(f'Test Accuracy: {(correct / len(test_data) * 100):.2f}% ({correct}/{len(test_data)})')
+
+plt.get_current_fig_manager().set_window_title('Training')
+plt.plot(range(epochs), losses)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.show()
