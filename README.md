@@ -2,7 +2,7 @@
 
 A machine learning model that classifies images from the CIFAR-10 dataset.
 
-Image goes here...
+![cifar-10](https://github.com/user-attachments/assets/b32dd228-9adf-4f73-a02c-f486363847e0)
 
 ## About
 
@@ -41,7 +41,7 @@ The neural network was trained for 70 epochs with a batch size of 4 and a learni
 +-------+---------------------+
 ```
 
-Image goes here...
+![Training](https://github.com/user-attachments/assets/cd2dbd88-18d4-47eb-977b-779990583980)
 
 The model achieved an accuracy of 62.56% on the testing set.
 
